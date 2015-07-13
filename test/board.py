@@ -45,7 +45,8 @@ class BoardTest(unittest.TestCase):
                           self.board.add_cell(0, 0, 2))
 
     def testBlah(self):
-        self.failUnless(True)
+        self.fail()
+        # always fails
 
 if __name__ == '__main__':
     unittest.main()

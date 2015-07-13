@@ -17,7 +17,6 @@ import numpy as np
 #   allow this!
 
 
-
 class Board():
     """The Board class implements a 2D grid where each "pixel" is in one 
     of a number of states similarly to Conway's Game of Life, though 
@@ -60,8 +59,7 @@ class Board():
         if self._board[i][j] is -player: # owned by player
             self._board[i][j] = player
         else:
-            raise IllegalActionException("Attempting to add a live cell on \
-                            land not owned by the player.")
+            raise IllegalActionException("Attempting to add a live cell on land not owned by the player.")
             
 
     def add_cells(self, i, j, pattern, player):
@@ -75,8 +73,7 @@ class Board():
         boardslice = self._board[tl[0]:tl[1], br[0]:br[1]] 
         # note: this is a view, so modifies underlying data
         if np.any( np.abs(boardslice[pattern.pattern]) is not player):
-            raise IllegalActionException("Attempting to place a pattern on \
-                            land not owned by the player.")
+            raise IllegalActionException("Attempting to place a pattern on land not owned by the player.")
         else:
             boardslice[pattern.pattern] = player # placed the pattern!
     
@@ -92,8 +89,7 @@ class Board():
         IllegalActionException if any of them are off the map."""
         for co in coords:
             if co[0] < 0 or co[1] < 0 or co[0] >= self._M or co[1] >= self._N:
-                raise IllegalActionException(
-                            "Attempting to use a location outside of the map.")
+                raise IllegalActionException("Attempting to use a location outside of the map.")
     
     @staticmethod
     def _check_player(player):
