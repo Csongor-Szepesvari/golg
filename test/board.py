@@ -3,7 +3,7 @@
 import unittest
 import numpy as np
 
-from ..src import board
+from src import board
 
 # Development notes:
 # - Add more tests:

@@ -1,4 +1,1 @@
-http://stackoverflow.com/questions/11536764/attempted-relative-import-in-non-package-even-with-init-py
-
-Get error when trying to run tests, this should solve it.
-
+Nothing urgent.
