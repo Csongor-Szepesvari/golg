@@ -10,8 +10,6 @@ a faster one**
 import numpy as np
 
 
-
-
 # Development notes here
 # - lots to implement
 # - bad implementation: pattern may have empty space on the side which could
@@ -82,6 +80,11 @@ class Board():
         else:
             boardslice[pattern.pattern] = player # placed the pattern!
     
+    def evolve(self):
+        """Take one timestep according to the game rules."""
+        self._timestep += 1
+        # TODO finish
+
     # ----- utility functions ------
     
     def check_coordinates(self, *coords):
