@@ -1,0 +1,16 @@
+Use Pyglet with Cocos2D (Python).
+
+Pyget provides windowing features, loading resources, etc.,
+Cocos2D (mainly) adds useful graphics tools on top like scenes, animations.
+
+Resources to get started - have not checked deeply:
+- pyglet and cocos2d quick sample
+    http://tartley.com/?p=250
+- pyglet tutorial
+    http://steveasleep.com/pyglettutorial/
+
+Pyglet website: https://bitbucket.org/pyglet/pyglet/wiki/Home
+Cocos2D website: http://cocos2d.org/#cocos2dpy
+                 http://python.cocos2d.org/doc/programming_guide/installation.html
+
+
