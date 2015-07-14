@@ -61,6 +61,9 @@ class Board():
         else:
             raise IllegalActionException("Attempting to add a live cell on land not owned by the player.")
             
+    def assign_territory(self, i, j, player):
+        Board._check_player(player)
+        self._board[i][j] = -player
 
     def add_cells(self, i, j, pattern, player):
         """Place the specified pattern for the given player onto the map
@@ -93,6 +96,7 @@ class Board():
     
     @staticmethod
     def _check_player(player):
+        """Check if the player is a valid player index."""
         if player <= 0: raise ValueError("Player must be positive integer.")
         
         

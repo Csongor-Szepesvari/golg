@@ -40,6 +40,7 @@ class BoardTest(unittest.TestCase):
      
     # these are proper public interface tests -------------------------------
     def testPlace(self):
+        self.board.assign_territory(0,0,1)
         self.board.add_cell(0, 0, 1) # should go through
         self.assertRaises(board.IllegalActionException, 
                           self.board.add_cell(0, 0, 2))
