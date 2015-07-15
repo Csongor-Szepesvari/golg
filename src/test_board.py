@@ -3,7 +3,7 @@
 import unittest
 import numpy as np
 
-from src import board
+import board
 
 # Development notes:
 # - Add more tests:
@@ -27,7 +27,12 @@ class BoardTest(unittest.TestCase):
 
     # preparing to test
     def setUp(self):
-        self.board = board.Board(2, 3)
+        self.board_sm = board.Board(3, 4)
+        self.board_bi = board.Board(10, 12)
+        self.pattern = board.Pattern(3, 2)
+        self.pat_spec = (".O.",
+                        "..O",
+                        "OOO")
      
     # ending the test
     def tearDown(self):
@@ -36,18 +41,34 @@ class BoardTest(unittest.TestCase):
     
     # these tests work on the innards... bad!! ------------------------------
     def testEmptyBoard(self):
-        self.assertTrue(np.all(self.board._board == 0)) 
+        self.assertTrue(np.all(self.board_sm._board == 0)) 
      
     # these are proper public interface tests -------------------------------
     def testPlace(self):
-        self.board.assign_territory(0,0,1)
-        self.board.add_cell(0, 0, 1) # should go through
-        self.assertRaises(board.IllegalActionException, 
-                          self.board.add_cell(0, 0, 2))
+        self.board_sm.assign_territory(0,0,1)
+        self.board_sm.add_cell(0, 0, 1) # should go through
+#        self.assertRaises(board.IllegalActionException, 
+#                          self.board_sm.add_cell, 0, 0, 2)
+        with self.assertRaises(board.IllegalActionException):    # newer way!
+            self.board_sm.add_cell(0, 0, 2)
+        
 
-    def testBlah(self):
-        self.fail()
-        # always fails
+    # some tests purely for the patterns ------------------------------------
+    def testPatternCenter(self):
+        self.assertEqual( self.pattern.get_center(), [1,0] )
+        
+    def testPatternSlice(self):
+        self.assertTrue(np.array_equal(self.pattern.get_slice(1, 2), 
+                                       np.array( [[0, 2], [3, 4]])),
+                        "The slice returned is not the expected one.")
+
+    def testPatternLoadUnsupported(self):
+        with self.assertRaises(ValueError):
+            self.pattern.load(None, "myformat")
+
+    def testLoadPlaintext(self):
+        self.pattern.load(self.pat_spec, "plaintext")
+        self.pattern.load_plaintext(self.pat_spec)
 
 if __name__ == '__main__':
     unittest.main()

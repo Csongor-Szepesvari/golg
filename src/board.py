@@ -56,7 +56,7 @@ class Board():
 
     def add_cell(self, i, j, player):
         Board._check_player(player)
-        if self._board[i][j] is -player: # owned by player
+        if self._board[i][j] == -player: # owned by player
             self._board[i][j] = player
         else:
             raise IllegalActionException("Attempting to add a live cell on land not owned by the player.")
@@ -75,7 +75,7 @@ class Board():
         self.check_coordinates(tl, br)
         boardslice = self._board[tl[0]:tl[1], br[0]:br[1]] 
         # note: this is a view, so modifies underlying data
-        if np.any( np.abs(boardslice[pattern.pattern]) is not player):
+        if np.any( np.abs(boardslice[pattern.pattern]) != player):
             raise IllegalActionException("Attempting to place a pattern on land not owned by the player.")
         else:
             boardslice[pattern.pattern] = player # placed the pattern!
@@ -116,14 +116,10 @@ class Pattern():
     def __init__(self, M, N):
         self.pattern = np.zeros((M, N), dtype='b')
     
-    def load(self, pat):
-        """Load a pattern from some representation pat"""
-        pass # TODO implement
-
     def get_center(self):
-        """They `i` and `j` indices of what's considered the center of
-        the pattern."""
-        return [d//2 for d in self.pattern.shape]
+        """The `i` and `j` indices inside the pattern of what's considered
+        the center of the pattern."""
+        return [(d-1)//2 for d in self.pattern.shape]
         
     def get_slice(self, ci, cj):
         """Given we place the pattern with center at `(ci, cj)`, return
@@ -132,9 +128,46 @@ class Pattern():
         Returned as numpy array [ [si, sj], [ei, ej] ].
         """
         c = np.array((ci, cj))
-        s = c - self.pattern.shape//2
-        e = s + self.pattern.shape
+        sh = np.array(self.pattern.shape)
+        ce = np.array(self.get_center())
+        s = c - ce
+        e = s + sh
         return np.vstack((s, e))
+        
+    def load(self, pat, fmt):
+        """Load a pattern from the representation `pat` that has the given 
+        format `fmt`. Current possibilities are 
+        
+            `{ "plaintext" }`
+        
+        *Note:* this can change the size of the pattern!
+        """
+        if fmt is "plaintext":
+            self.load_plaintext(pat)
+        else:
+            raise ValueError("The specified format is not supported.")
+        pass # TODO implement more?
+
+    def load_plaintext(self, pattern):
+        """ Sample pattern::
+        
+            .O.
+            ..O
+            OOO
+        
+        As a list of strings, each line being an individual entry. Each line
+        needs to have the same length, though this is not checked.
+        """
+        self.pattern = np.zeros( (len(pattern), len(pattern[0])), dtype='b' )
+        for i, l in enumerate(pattern):
+            for j, c in enumerate(l):
+                if c is '.':
+                    pass
+                elif c is 'O':
+                    self.pattern[i, j] = True
+                else:
+                    raise ValueError("The specified pattern is not of the correct format. Encountered unexpected character {}".format(c) )
+        
         
 #    def get_live(self, ci, cj):
 #        """Gets a generator for the coordinates of turned on cells when 
