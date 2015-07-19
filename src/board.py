@@ -57,7 +57,8 @@ class Board():
 
     def assign_territory(self, i, j, player):
         self._use_player(player)
-        self._board[i][j] = -player
+        if self._board[i][j] != player:
+            self._board[i][j] = -player 
 
     def assign_territories(self, i, j, pattern, player):
         """Make the specified pattern shape, centered at `i`, `j`, owned 
@@ -69,7 +70,8 @@ class Board():
         """
         self._use_player(player)
         boardslice = self._get_pattern_slice(i, j, pattern)
-        boardslice[pattern] = np.sign(boardslice[pattern])*player
+        idx = np.nonzero(pattern.pattern & (boardslice != 1))
+        boardslice[idx] = -player
 
     def add_cell(self, i, j, player, forced=False):
         """Add a live cell for the specified player at the specified
@@ -92,10 +94,11 @@ class Board():
         self._use_player(player)
         boardslice = self._get_pattern_slice(i, j, pattern)
         # note: this is a view, so modifies underlying data
-        if not forced and np.any( np.abs(boardslice[pattern.pattern]) != player):
+        if not forced and np.any( np.abs(boardslice[pattern.getinds()]) != player):
             raise IllegalActionException("Attempting to place a pattern on land not owned by the player.")
         else:
-            boardslice[pattern.pattern] = player # placed the pattern!
+            boardslice[pattern.getinds()] = player 
+            # placed the pattern! TODO is nonzero really necessary?
     
     def evolve(self):
         """Take one timestep according to the game rules."""
@@ -148,7 +151,7 @@ class Board():
         """Take a list of coordinates (as 2-tuples/list), raise an
         IllegalActionException if any of them are off the map."""
         for co in coords:
-            if co[0] < 0 or co[1] < 0 or co[0] >= self._M or co[1] >= self._N:
+            if co[0] < 0 or co[1] < 0 or co[0] > self._M or co[1] > self._N:
                 raise IllegalActionException("Attempting to use a location outside of the map.")
     
     @staticmethod
@@ -191,6 +194,10 @@ class Pattern():
         e = s + sh
         return np.vstack((s, e))
         
+    def getinds(self):
+        """List locations of `True` -- basically calls nonzero"""
+        return np.nonzero(self.pattern)
+        
     def load(self, pat, fmt):
         """Load a pattern from the representation `pat` that has the given 
         format `fmt`. Current possibilities are 
@@ -224,8 +231,7 @@ class Pattern():
                     self.pattern[i, j] = True
                 else:
                     raise ValueError("The specified pattern is not of the correct format. Encountered unexpected character {}".format(c) )
-        
-        
+                
 #    def get_live(self, ci, cj):
 #        """Gets a generator for the coordinates of turned on cells when 
 #        `cx`, `cy` is taken to be the coordinates of the center

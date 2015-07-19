@@ -58,11 +58,13 @@ class BoardTest(unittest.TestCase):
         empty = self.board_sm.get_counts()
         self.assertEqual(empty, {})
         test2 = self.board_bi.get_counts()
-        self.assertEqual(test2, {1: (5, 5)})
+        self.assertEqual(test2, {1: [5, 5]})
         self.board_bi.add_cell(9, 10, 3, forced=True)
-        self.assertEqual(test2, {1: (5, 5), 3: (1,1)})
+        test3 = self.board_bi.get_counts()
+        self.assertEqual(test3, {1: [5, 5], 3: [1,1]})
         self.board_bi.assign_territory(0, 7, 3)
-        self.assertEqual(test2, {1: (5, 5), 3: (2,1)})
+        test4 = self.board_bi.get_counts()
+        self.assertEqual(test4, {1: [5, 5], 3: [2,1]})
     
     def testAssignBadPattern(self):
         with self.assertRaises(board.IllegalActionException):
@@ -76,8 +78,8 @@ class BoardTest(unittest.TestCase):
         # should go through now
         self.board_sm.add_cell(3, 3, 1) 
         self.board_sm.add_cell(1, 2, 1) 
-        self.board_sm.add_cell(1, 3, 1) 
-        self.board_sm.add_cell(1, 3, 2) 
+        self.board_sm.add_cell(3, 2, 1) 
+        self.board_sm.add_cell(2, 3, 2) 
         # but these still don't
         with self.assertRaises(board.IllegalActionException):
             self.board_sm.add_cell(2, 3, 1)
