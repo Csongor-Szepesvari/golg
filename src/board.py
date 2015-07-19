@@ -8,7 +8,7 @@ a faster one**
 
 # imports here
 import numpy as np
-
+from collections import defaultdict
 
 # Development notes here
 # - lots to implement
@@ -53,29 +53,46 @@ class Board():
         self._N = N
         # TODO later maybe make them directly accessible but read-only..
         self._timestep = 0
+        self._maxplayer = 0 # the largest indexed player added
 
-    def add_cell(self, i, j, player):
-        Board._check_player(player)
-        if self._board[i][j] == -player: # owned by player
+    def assign_territory(self, i, j, player):
+        self._use_player(player)
+        self._board[i][j] = -player
+
+    def assign_territories(self, i, j, pattern, player):
+        """Make the specified pattern shape, centered at `i`, `j`, owned 
+        by the specified `player`.
+        
+        *Note:* The switch will always be made, even if the cells were
+        originally owned by someone else - dead or alive. The state
+        remains unchanged.
+        """
+        self._use_player(player)
+        boardslice = self._get_pattern_slice(i, j, pattern)
+        boardslice[pattern] = np.sign(boardslice[pattern])*player
+
+    def add_cell(self, i, j, player, forced=False):
+        """Add a live cell for the specified player at the specified
+        location.
+        
+        If not forced (default), this raises an `IllegalActionException`
+        if the location is not owned by the player. Otherwise we set the
+        specified cell to be live and belonging to the player, no matter
+        what.
+        """
+        self._use_player(player)
+        if forced or self._board[i][j] == -player: # owned by player
             self._board[i][j] = player
         else:
             raise IllegalActionException("Attempting to add a live cell on land not owned by the player.")
             
-    def assign_territory(self, i, j, player):
-        Board._check_player(player)
-        self._board[i][j] = -player
-
-    def add_cells(self, i, j, pattern, player):
-        """Place the specified pattern for the given player onto the map
-        centered at i, j."""
-        Board._check_player(player)
-        # check if the pattern can be placed at the location
-        corns = pattern.get_slice()
-        tl, br = (list(corns[0]), list(corns[1])) # top-left and bot-right
-        self.check_coordinates(tl, br)
-        boardslice = self._board[tl[0]:tl[1], br[0]:br[1]] 
+    def add_cells(self, i, j, pattern, player, forced=False):
+        """Like `add_cell`, but for a pattern that will be centered at
+        `i`, `j` on the map."""
+        self._use_player(player)
+        boardslice = self._get_pattern_slice(i, j, pattern)
         # note: this is a view, so modifies underlying data
-        if np.any( np.abs(boardslice[pattern.pattern]) != player):
+        if not forced and np.any( np.abs(boardslice[pattern.pattern]) != player):
             raise IllegalActionException("Attempting to place a pattern on land not owned by the player.")
         else:
             boardslice[pattern.pattern] = player # placed the pattern!
@@ -85,7 +102,47 @@ class Board():
         self._timestep += 1
         # TODO finish
 
+    def get_counts(self):
+        """Return the number of owned and live cells for each player.
+        
+        This is in the form::
+        
+            {playernum: [owned, live], ...}
+            
+        As a defaultdict. Live cells contribute to the owned count too.
+        """
+        # TODO slow.. later keep it updated during evolution.
+        counts = defaultdict(lambda: [0,0])
+        i, j = np.nonzero(self._board)
+        for el in range(i.size):
+            val = self._board[i[el], j[el]]
+            counts[abs(val)][0] += 1
+            if val > 0:
+                counts[abs(val)][1] += 1
+        return counts
+        
+    def _use_player(self, player):
+        """Like `_check_player`, but we record that we are using this
+        player."""
+        Board._check_player(player)
+        self._maxplayer = max(self._maxplayer, player)
+
     # ----- utility functions ------
+
+    def _get_pattern_slice(self, i, j, pattern):
+        """Get a view of the board corresponding to placing the
+        center of specified pattern at `i`, `j`. If not a valid location,
+        raises `IllegalActionException`. Example::
+        
+            boardslice = self._get_pattern_slice(5, 3, my_pattern)
+            
+        Since `boardslice` is a view, changing it changes the board.
+        """
+        corns = pattern.get_slice(i, j)
+        tl, br = (list(corns[0]), list(corns[1])) # top-left and bot-right
+        self.check_coordinates(tl, br)
+        return self._board[tl[0]:br[0], tl[1]:br[1]] 
+
     
     def check_coordinates(self, *coords):
         """Take a list of coordinates (as 2-tuples/list), raise an
