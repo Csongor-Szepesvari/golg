@@ -13,11 +13,13 @@ $ ./main.py
 from the appropriate directory.
 
 ## How to test
-From the root folder of the project run the desired file as a module. For example, if my project is in a directory called `golg`, and I want to run `board.py` in the test directory (subpackage), I would call, in directory `golg`
-
+At the moment test files are in the `src` directory and their filenames are prefixed with `test_`. 
+The tests are implemented as python unittests, as such can be ran with `python -m unittest <what-to-test>`.
+It is often useful to have verbose output; this can be turned on with the `-v` flag. A complete example would be:
 ```bash
-$ python -m test.board 
+python -m unittest -v test_board
 ```
+Note that this has to be run from the `src` directory. It's also possible to test individual classes or methods.
 
 ## Notes to self
 

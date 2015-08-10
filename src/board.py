@@ -3,13 +3,14 @@
 David and Csongor Szepesvari (c) 2015.
 
 **This implementation will most definitely have to be switched out for 
-a faster one**. Some suggestions towards this::
+a faster one**. Some suggestions towards this:
 
-    * Use the C code that is linked from 
-    ``http://pmav.eu/stuff/javascript-game-of-life-v3.1.1/``
-    * Store a different map for each person (my understanding is that the
-    above implementation is like a sparse matrix?), collect propagation
-    info that can then be used to determine who has majority.
+* Use the C code that is linked from 
+  ``http://pmav.eu/stuff/javascript-game-of-life-v3.1.1/``
+* Store a different map for each person (my understanding is that the
+  above implementation is like a sparse matrix?), collect propagation
+  info that can then be used to determine who has majority.
+    
 """
 
 # imports here
@@ -111,12 +112,12 @@ class Board():
             # placed the pattern! TODO is nonzero really necessary?
     
     def evolve(self):
-        """Take one timestep according to the game rules. The rules are::
+        """Take one timestep according to the game rules. The rules are:
         
-            * If a cell is currently live, it remains live iff it has
-            (2 or 3) live neighbours,
-            * If a cell is currently dead, it spawns a live one iff it
-            has exactly 3 live neighbours.
+        * If a cell is currently live, it remains live iff it has
+          (2 or 3) live neighbours,
+        * If a cell is currently dead, it spawns a live one iff it
+          has exactly 3 live neighbours.
             
         The owner of the new cell is the one with the majority number of
         neighbours -- the current owner does not matter. Whenever there is
@@ -270,15 +271,14 @@ class Pattern():
         
         *Note:* this can change the size of the pattern!
         
-        For descriptions of each pattern see:
+        The description of each of these formats is as follows:
         
-        - plaintext: see 'Pattern.load_plaintext'_
+        - `plaintext`: see :py:meth:`board.Pattern.load_plaintext`
+        - `plaintext_file`: a path to a file that contains purely a line-
+          by-line description of the pattern similar to the format in
+          :py:meth:`board.Pattern.load_plaintext`. Lines with only
+          whitespace are skipped.
         
-        Internal crossreferences, like 'example'_.
-
-        .. _example:
-        
-        This is an example crossreference target. 
         """
         if fmt is "plaintext":
             self.load_plaintext(pat)
