@@ -143,6 +143,7 @@ class Board():
                 their_counts = counts[best_players]
                 if their_counts[0] == their_counts[1]:
                     # this spot remains dead -- move to the next one
+                    it.iternext() # move iteration ahead!!
                     continue
             # just sum number of live neighs and implement the above described rules
             num_alive = counts.sum()
@@ -154,6 +155,7 @@ class Board():
                 if num_alive == 3:
                     # was dead, now alive, mark with majority player
                     nextboard[ci, cj] = np.argmax(counts)
+            it.iternext() # move iteration ahead!!
         self._timestep += 1
         self._board = nextboard
         
@@ -207,13 +209,13 @@ class Board():
                 raise IllegalActionException("Attempting to use a location outside of the map.")
 
     __DIRS = (  (-1, -1), (-1, 0), (-1, 1), \
-                ( 0, -1), ( 0, 0), ( 0, 1), \
+                ( 0, -1),          ( 0, 1), \
                 ( 1, -1), ( 1, 0), ( 1, 1) )
     def stream_neighbours(self, i, j):
         """Streams the coordinates of valid neighbours of the given index."""
-        for d in __DIRS:
+        for d in Board.__DIRS:
             pi, pj = d[0]+i, d[1]+j
-            if 0 <= pi and pi < self._M and 0 <= pj and pi < self._N:
+            if 0 <= pi and pi < self._M and 0 <= pj and pj < self._N:
                 yield((pi, pj))
     
     @staticmethod
@@ -245,7 +247,7 @@ class Pattern():
         
     def get_slice(self, ci, cj):
         """Given we place the pattern with center at `(ci, cj)`, return
-        the index slice taken for this pattern.
+        the index slice required for this pattern.
         
         Returned as numpy array [ [si, sj], [ei, ej] ].
         """
@@ -264,12 +266,27 @@ class Pattern():
         """Load a pattern from the representation `pat` that has the given 
         format `fmt`. Current possibilities are 
         
-            `{ "plaintext" }`
+            `{ "plaintext", "plaintext_file" }`
         
         *Note:* this can change the size of the pattern!
+        
+        For descriptions of each pattern see:
+        
+        - plaintext: see 'Pattern.load_plaintext'_
+        
+        Internal crossreferences, like 'example'_.
+
+        .. _example:
+        
+        This is an example crossreference target. 
         """
         if fmt is "plaintext":
             self.load_plaintext(pat)
+        elif fmt is "plaintext_file":
+            with open(pat, 'r') as pat_source:
+                str_ = [line.strip() for line in pat_source if line.strip()]
+                self.load_plaintext(str_)
+                self.load()
         else:
             raise ValueError("The specified format is not supported.")
         pass # TODO implement more?
@@ -293,7 +310,7 @@ class Pattern():
                     self.pattern[i, j] = True
                 else:
                     raise ValueError("The specified pattern is not of the correct format. Encountered unexpected character {}".format(c) )
-                
+    
 #    def get_live(self, ci, cj):
 #        """Gets a generator for the coordinates of turned on cells when 
 #        `cx`, `cy` is taken to be the coordinates of the center

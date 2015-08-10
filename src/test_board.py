@@ -109,7 +109,12 @@ class BoardTest(unittest.TestCase):
     def testLoadPlaintext(self):
         self.pattern.load(self.pat_spec_str, "plaintext")
         self.pattern.load_plaintext(self.pat_spec_str)
-
+        
+    def testLoadPlaintextFile(self):
+        self.pattern.load("patterns/glider.pat", "plaintext_file")
+        self.pattern.load("patterns/block.pat", "plaintext_file")
+        self.pattern.load("patterns/beehive.pat", "plaintext_file")
+        self.pattern.load("patterns/blinker.pat", "plaintext_file")
 
     # these tests work on the innards... Expected to break sometimes ---------
     def testEmptyBoard(self):
@@ -118,16 +123,37 @@ class BoardTest(unittest.TestCase):
     def testEvolveBasic1(self):
         self.board_sm.add_cell(1, 1, 1, forced=True)
         self.board_sm.add_cell(2, 3, 2, forced=True)
-        self.board_sm.add_cell(2, 4, 2, forced=True)
+        self.board_sm.add_cell(3, 3, 2, forced=True)
         self.board_sm.evolve()
         expect = np.zeros(self.board_sm._board.shape)
         expect[1, 1] = -1
         expect[2, 2] = 2
         expect[2, 3] = -2
-        expect[2, 4] = -2
+        expect[3, 3] = -2
+        self.assertTrue( np.array_equal(self.board_sm._board, expect),
+                         "Evolution did not go as expected")
+        expect[2, 2] = -2
+        self.board_sm.evolve()
         self.assertTrue( np.array_equal(self.board_sm._board, expect),
                          "Evolution did not go as expected")
         
+    def testEvolveBasic2(self):
+        self.fail("Note implemented yet")
+        self.board_sm.add_cell(1, 1, 1, forced=True)
+        self.board_sm.add_cell(2, 3, 2, forced=True)
+        self.board_sm.add_cell(3, 3, 2, forced=True)
+        self.board_sm.evolve()
+        expect = np.zeros(self.board_sm._board.shape)
+        expect[1, 1] = -1
+        expect[2, 2] = 2
+        expect[2, 3] = -2
+        expect[3, 3] = -2
+        self.assertTrue( np.array_equal(self.board_sm._board, expect),
+                         "Evolution did not go as expected")
+        expect[2, 2] = -2
+        self.board_sm.evolve()
+        self.assertTrue( np.array_equal(self.board_sm._board, expect),
+                         "Evolution did not go as expected")
 
 
 if __name__ == '__main__':
