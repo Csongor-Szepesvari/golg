@@ -3,7 +3,13 @@
 David and Csongor Szepesvari (c) 2015.
 
 **This implementation will most definitely have to be switched out for 
-a faster one**
+a faster one**. Some suggestions towards this::
+
+    * Use the C code that is linked from 
+    ``http://pmav.eu/stuff/javascript-game-of-life-v3.1.1/``
+    * Store a different map for each person (my understanding is that the
+    above implementation is like a sparse matrix?), collect propagation
+    info that can then be used to determine who has majority.
 """
 
 # imports here
@@ -11,10 +17,14 @@ import numpy as np
 from collections import defaultdict
 
 # Development notes here
+#
 # - lots to implement
 # - bad implementation: pattern may have empty space on the side which could
 #   technically be outside of the map, but current implementation doesn't
 #   allow this!
+#
+#
+#
 
 
 class Board():
@@ -101,9 +111,52 @@ class Board():
             # placed the pattern! TODO is nonzero really necessary?
     
     def evolve(self):
-        """Take one timestep according to the game rules."""
+        """Take one timestep according to the game rules. The rules are::
+        
+            * If a cell is currently live, it remains live iff it has
+            (2 or 3) live neighbours,
+            * If a cell is currently dead, it spawns a live one iff it
+            has exactly 3 live neighbours.
+            
+        The owner of the new cell is the one with the majority number of
+        neighbours -- the current owner does not matter. Whenever there is
+        a tie the cell will be dead.
+        """
+        nextboard = np.copy(self._board)
+        nextboard *= -np.sign(nextboard) # sets everything dead, with owner
+        # simplest evolve solution: iterate over the array, check neighbours
+        # for each location, counts will count number of live cells for each player
+        counts = np.empty( self._maxplayer+1, dtype='=i4' ) # 0 is unowned - not counted!
+        it = np.nditer(self._board, flags=['multi_index'], op_flags=['readonly'])
+        while not it.finished:
+            ci, cj = (it.multi_index[0], it.multi_index[1])
+            counts.fill(0)
+            for n in self.stream_neighbours(ci, cj):
+                if self._board[n[0],n[1]] > 0:
+                    counts[ self._board[n[0],n[1]] ] += 1
+            # counts now has all the correct info
+            
+            # since the tie-breaking rule shortcircuits everything else, we
+            # check that one first -- except if there's only one player involved
+            if np.count_nonzero(counts) > 1:
+                best_players = np.argpartition(counts, -2)[-2:]
+                their_counts = counts[best_players]
+                if their_counts[0] == their_counts[1]:
+                    # this spot remains dead -- move to the next one
+                    continue
+            # just sum number of live neighs and implement the above described rules
+            num_alive = counts.sum()
+            if it[0] > 0:
+                if num_alive == 2 or num_alive == 3:
+                    # was alive, still alive, mark with majority player
+                    nextboard[ci, cj] = np.argmax(counts)
+            else:
+                if num_alive == 3:
+                    # was dead, now alive, mark with majority player
+                    nextboard[ci, cj] = np.argmax(counts)
         self._timestep += 1
-        # TODO finish
+        self._board = nextboard
+        
 
     def get_counts(self):
         """Return the number of owned and live cells for each player.
@@ -146,13 +199,22 @@ class Board():
         self.check_coordinates(tl, br)
         return self._board[tl[0]:br[0], tl[1]:br[1]] 
 
-    
     def check_coordinates(self, *coords):
         """Take a list of coordinates (as 2-tuples/list), raise an
         IllegalActionException if any of them are off the map."""
         for co in coords:
             if co[0] < 0 or co[1] < 0 or co[0] > self._M or co[1] > self._N:
                 raise IllegalActionException("Attempting to use a location outside of the map.")
+
+    __DIRS = (  (-1, -1), (-1, 0), (-1, 1), \
+                ( 0, -1), ( 0, 0), ( 0, 1), \
+                ( 1, -1), ( 1, 0), ( 1, 1) )
+    def stream_neighbours(self, i, j):
+        """Streams the coordinates of valid neighbours of the given index."""
+        for d in __DIRS:
+            pi, pj = d[0]+i, d[1]+j
+            if 0 <= pi and pi < self._M and 0 <= pj and pi < self._N:
+                yield((pi, pj))
     
     @staticmethod
     def _check_player(player):

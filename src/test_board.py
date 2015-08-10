@@ -7,8 +7,6 @@ import board
 
 # Development notes:
 # - Add more tests:
-#    * make board with 0 or negative size
-#    * test pattern by itself
 #    * check_coordinates: does it take one, two, etc arguments well, list?
 #    * add_cell --> success, outside, wrong player, 
 #                    player on already owned but live cell
@@ -18,7 +16,6 @@ import board
 #                    counting the already live ones?), if actual pattern
 #                    fits on map but non-trimmed does not!
 #    * check the evolution works on some simple cases
-# - Checking if proper exceptions etc are received.
 #
 # Questions:
 # - why can we access board.np ?
@@ -45,6 +42,15 @@ class BoardTest(unittest.TestCase):
         pass
     
     # these are proper public interface tests -------------------------------
+    def testBadSetup(self):
+        # note: we do not check 0 x 0
+        with self.assertRaises(ValueError):
+            board.Board(-12, -2)
+        with self.assertRaises(ValueError):
+            board.Board(4, -1)
+        with self.assertRaises(ValueError):
+            board.Board(-3, 12)
+    
     def testPlace(self):
         self.board_sm.assign_territory(0,0,1)
         self.board_sm.add_cell(0, 0, 1) # should go through
@@ -116,6 +122,7 @@ class BoardTest(unittest.TestCase):
         self.board_sm.evolve()
         expect = np.zeros(self.board_sm._board.shape)
         expect[1, 1] = -1
+        expect[2, 2] = 2
         expect[2, 3] = -2
         expect[2, 4] = -2
         self.assertTrue( np.array_equal(self.board_sm._board, expect),
