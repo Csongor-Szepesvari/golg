@@ -10,7 +10,9 @@ a faster one**. Some suggestions towards this:
 * Store a different map for each person (my understanding is that the
   above implementation is like a sparse matrix?), collect propagation
   info that can then be used to determine who has majority.
-    
+
+TODO: how to handle the border?
+
 """
 
 # imports here
@@ -238,8 +240,46 @@ class Pattern():
         pattern -- numpy bool array
     
     Standardizes functionality like indexing w.r.t. pattern."""
-    def __init__(self, M, N):
-        self.pattern = np.zeros((M, N), dtype='b')
+    def __init__(self):
+        """Do NOT use this. Use one of the "factory methods"
+        
+        * :py:meth:`empty_pattern`
+        * :py:meth:`load_pattern`
+        
+        """
+        # for convention we declare all member variables
+        self.pattern = None
+        pass # nothing happens
+    
+    @classmethod
+    def empty_pattern(cls, M, N):
+        """Returns a new, empty instance of the given size."""
+        toret = cls()
+        toret.pattern = np.zeros((M, N), dtype='b')
+        return toret
+        
+    @classmethod
+    def load_pattern(cls, pat, fmt):
+        """Returns a new instance with the specified pattern.
+        
+        The pattern is read from the representation `pat`, which has the
+        specified format `fmt`. Current possibilities are 
+        
+            `{ "plaintext", "plaintext_file" }`
+        
+        
+        The description of each of these formats is as follows:
+        
+        - `plaintext`: see :py:meth:`board.Pattern.load_plaintext`
+        - `plaintext_file`: a path to a file that contains purely a line-
+          by-line description of the pattern similar to the format in
+          :py:meth:`board.Pattern.load_plaintext`. Lines with only
+          whitespace are skipped.
+        
+        """
+        toret = cls()
+        toret.load(pat, fmt)
+        return toret
     
     def get_center(self):
         """The `i` and `j` indices inside the pattern of what's considered
@@ -264,21 +304,10 @@ class Pattern():
         return np.nonzero(self.pattern)
         
     def load(self, pat, fmt):
-        """Load a pattern from the representation `pat` that has the given 
-        format `fmt`. Current possibilities are 
+        """Load a pattern into this instance.
         
-            `{ "plaintext", "plaintext_file" }`
-        
+        Otherwise similar to :py:meth:`load_pattern`.
         *Note:* this can change the size of the pattern!
-        
-        The description of each of these formats is as follows:
-        
-        - `plaintext`: see :py:meth:`board.Pattern.load_plaintext`
-        - `plaintext_file`: a path to a file that contains purely a line-
-          by-line description of the pattern similar to the format in
-          :py:meth:`board.Pattern.load_plaintext`. Lines with only
-          whitespace are skipped.
-        
         """
         if fmt is "plaintext":
             self.load_plaintext(pat)
@@ -286,7 +315,6 @@ class Pattern():
             with open(pat, 'r') as pat_source:
                 str_ = [line.strip() for line in pat_source if line.strip()]
                 self.load_plaintext(str_)
-                self.load()
         else:
             raise ValueError("The specified format is not supported.")
         pass # TODO implement more?

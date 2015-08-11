@@ -26,15 +26,13 @@ class BoardTest(unittest.TestCase):
     def setUp(self):
         self.board_sm = board.Board(4, 5)
 
-        self.pattern = board.Pattern(3, 2)
+        self.pattern = board.Pattern.empty_pattern(3, 2)
         self.pat_spec_str = (".O.",
                              "..O",
                              "OOO")
-        self.pattern_sp = board.Pattern(0,0)
-        self.pattern_sp.load_plaintext(self.pat_spec_str)
+        self.pattern_sp = board.Pattern.load_pattern(self.pat_spec_str, "plaintext")
         
         self.board_bi = board.Board(10, 12)
-        self.board_bi.add_cells(2, 2, self.pattern_sp, 1, forced=True)
      
     # ending the test
     def tearDown(self):
@@ -54,8 +52,6 @@ class BoardTest(unittest.TestCase):
     def testPlace(self):
         self.board_sm.assign_territory(0,0,1)
         self.board_sm.add_cell(0, 0, 1) # should go through
-#        self.assertRaises(board.IllegalActionException, 
-#                          self.board_sm.add_cell, 0, 0, 2)
         with self.assertRaises(board.IllegalActionException):    # newer way!
             self.board_sm.add_cell(0, 0, 2)
         self.board_sm.add_cell(0, 0, 2, forced=True)
@@ -63,11 +59,15 @@ class BoardTest(unittest.TestCase):
     def testCount(self):
         empty = self.board_sm.get_counts()
         self.assertEqual(empty, {})
+        
+        self.board_bi.add_cells(2, 2, self.pattern_sp, 1, forced=True)
         test2 = self.board_bi.get_counts()
         self.assertEqual(test2, {1: [5, 5]})
+        
         self.board_bi.add_cell(9, 10, 3, forced=True)
         test3 = self.board_bi.get_counts()
         self.assertEqual(test3, {1: [5, 5], 3: [1,1]})
+        
         self.board_bi.assign_territory(0, 7, 3)
         test4 = self.board_bi.get_counts()
         self.assertEqual(test4, {1: [5, 5], 3: [2,1]})
@@ -138,23 +138,42 @@ class BoardTest(unittest.TestCase):
                          "Evolution did not go as expected")
         
     def testEvolveBasic2(self):
-        self.fail("Note implemented yet")
-        self.board_sm.add_cell(1, 1, 1, forced=True)
-        self.board_sm.add_cell(2, 3, 2, forced=True)
-        self.board_sm.add_cell(3, 3, 2, forced=True)
-        self.board_sm.evolve()
-        expect = np.zeros(self.board_sm._board.shape)
-        expect[1, 1] = -1
-        expect[2, 2] = 2
-        expect[2, 3] = -2
-        expect[3, 3] = -2
-        self.assertTrue( np.array_equal(self.board_sm._board, expect),
+        glider_pat = board.Pattern.load_pattern("patterns/glider.pat", "plaintext_file")
+        glider_pat1 = board.Pattern.load_pattern("patterns/glider1.pat", "plaintext_file")
+        glider_pat2 = board.Pattern.load_pattern("patterns/glider2.pat", "plaintext_file")
+        glider_pat3 = board.Pattern.load_pattern("patterns/glider3.pat", "plaintext_file")
+        block_pat = board.Pattern.load_pattern("patterns/block.pat", "plaintext_file")
+        self.board_bi.add_cells(1, 1, glider_pat, 1, forced=True)
+        self.board_bi.add_cells(6, 1, glider_pat, 2, forced=True)
+        self.board_bi.add_cells(8, 8, block_pat, 1, forced=True)
+        self.board_bi.evolve()
+        
+        expect = board.Board(self.board_bi._M, self.board_bi._N)
+        expect.assign_territories(1, 1, glider_pat, 1)
+        expect.assign_territories(6, 1, glider_pat, 2)
+        expect.assign_territories(8, 8, block_pat, 1)
+        expect.add_cells(2, 1, glider_pat1, 1, forced=True)
+        expect.add_cells(7, 1, glider_pat1, 2, forced=True)
+        expect.add_cells(8, 8, block_pat, 1, forced=True)
+        self.assertTrue( np.array_equal(self.board_bi._board, expect._board),
                          "Evolution did not go as expected")
-        expect[2, 2] = -2
-        self.board_sm.evolve()
-        self.assertTrue( np.array_equal(self.board_sm._board, expect),
+                         
+        self.board_bi.evolve()
+        expect._board *= - np.sign(expect._board)
+        expect.add_cells(2, 1, glider_pat2, 1, forced=True)
+        expect.add_cells(7, 1, glider_pat2, 2, forced=True)
+        expect.add_cells(8, 8, block_pat, 1, forced=True)
+        self.assertTrue( np.array_equal(self.board_bi._board, expect._board),
                          "Evolution did not go as expected")
 
+        self.board_bi.evolve()
+        expect._board *= - np.sign(expect._board)
+        expect.add_cells(2, 2, glider_pat3, 1, forced=True)
+        expect.add_cells(7, 2, glider_pat3, 2, forced=True)
+        expect.add_cells(8, 8, block_pat, 1, forced=True)
+        self.assertTrue( np.array_equal(self.board_bi._board, expect._board),
+                         "Evolution did not go as expected")
+        
 
 if __name__ == '__main__':
     unittest.main()

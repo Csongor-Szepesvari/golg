@@ -1,0 +1,10 @@
+There are a number of inline todo's already. Only include ones here that are
+1) not URGENT. These go in their appropriate file.
+2) not inline - they do not have a place in files.
+
+* Technically I use the `numpy` variation of the ReST documentation style so
+it is a little different from what Sphinx expects. There is some package to
+fix this. In fact 2. Read:
+    - http://sphinx-doc.org/ext/autodoc.html
+    - https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
+
